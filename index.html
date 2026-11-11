@@ -140,11 +140,15 @@ details{margin:8px 0} summary{cursor:pointer;font-weight:600}
       <h2>Settings</h2>
       <label for="emv">Value of 1 Axis Edge Mile (₹)</label>
       <input id="emv" type="number" step="0.05" min="0.2" max="3" value="1">
+      <label for="atl" style="margin-top:14px">Axis Atlas travel rate</label>
+      <select id="atl"><option value="5">5 EM per ₹100 on direct travel (public terms)</option><option value="2">Flat 2 EM per ₹100 on everything (what you told me)</option></select>
+      <label for="scv" style="margin-top:14px">Scapia card variant</label>
+      <select id="scv"><option value="visa">Visa (10 coins per ₹100, about 2%)</option><option value="rupay">RuPay (5 coins per ₹100, about 1%, works with UPI)</option></select>
       <p class="meta">₹1 is the conservative cash-like value. Transferring to airline/hotel partners (1 EM → 2 partner miles) can be worth ₹1.2–2 per EM if you redeem well. Raising this makes Atlas rank higher.</p>
     </div>
   </section>
 
-  <p class="disc">⚠️ Rates, caps and perks are based on publicly known terms as of early 2026 and <b>banks change them often</b> (HDFC and Axis especially). Treat results as a strong guide, and confirm in each bank's app / MITC. Rules live in the <code>CARDS</code> block at the top of the script in this file, so they're easy to edit.</p>
+  <p class="disc">⚠️ Rates, caps and perks are taken from public review sites and bank pages checked in November 2026. I could not open the banks' own terms documents, and sources disagree on some details, so <b>confirm in each bank's app</b>. Banks change them often (HDFC and Axis especially). Treat results as a strong guide, and confirm in each bank's app / MITC. Rules live in the <code>CARDS</code> block at the top of the script in this file, so they're easy to edit.</p>
 </div>
 
 <script>
@@ -181,46 +185,46 @@ const MERCHANTS = [
 ];
 const TRAVEL = ['flight','hotel'];
 const NO_REWARD = {
-  millennia:['fuel','rent','wallet','govt','insurance','utilities','education','jewellery'],
-  atlas:['fuel','rent','wallet','govt','insurance','utilities','telecom','education','jewellery'],
-  neu:['fuel','rent','wallet','govt','insurance','utilities','education','jewellery'],
+  millennia:['fuel','rent','wallet','govt'],
+  atlas:['fuel','rent','wallet','govt','insurance','utilities'],
+  neu:['fuel','rent','wallet','govt'],
   scapia:['fuel','rent','wallet','govt']
 };
 const FUEL_WAIVER = 1; // % surcharge waiver approx (txn ₹400–5,000, ~₹250/month cap)
 
 const CARDS = [
  { id:'millennia', name:'HDFC Millennia', color:'#d6402f', unit:'CashPoints', unitValue:1,
-   forex:3.5, upi:false,
+   forex:2.36, upi:false,
    benefits:{
-    fee:'₹1,000 + GST (waived on ₹1L spend in a year)',
-    earn:['5% CashPoints on 10 partner merchants: Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow, Cult.fit, Sony LIV, Tata CLiQ','1% CashPoints on all other eligible spends','1 CashPoint = ₹1 (statement credit / Amazon & Flipkart vouchers; some catalogue items are lower value)','Caps: ~1,000 CashPoints/month on the 5% bucket and ~1,000/month on the 1% bucket'],
-    perks:['Domestic lounge: reported as 2 per quarter on ₹1L spend in the previous quarter, but sources conflict (some say it has ended); confirm in the HDFC app','Quarterly milestone: ₹1L spend → ₹1,000 voucher (check current offer)','1% fuel surcharge waiver (₹400–5,000 txn, up to ₹250/month)','Contactless, Visa Signature'],
-    watch:['No/limited rewards on fuel, rent, wallets, government, insurance, utilities, education, gold','Statement-credit redemption may carry a ₹50 fee per redemption (unconfirmed)','Forex markup ~3.5%','Not a UPI card — cannot be used for UPI scan-and-pay'],
-    best:'The 10 partner merchants, especially Amazon, Flipkart, Swiggy, Zomato, Uber and Myntra (up to the monthly cap).'
+    fee:'₹1,000 + GST (waived on ₹1L annual spend)',
+    earn:['5% CashPoints on 10 partner brands: Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow, Cult.fit, Sony LIV, Tata CLiQ','1% CashPoints on most other spends','Cap: 1,000 CashPoints per month at the 5% rate (about ₹20,000 of partner spend)','1 CashPoint = ₹1 as statement credit (some sources report a redemption fee and lower value for vouchers; confirm in NetBanking)','Wallet loads on partner merchants earn 1%, and SmartBuy/PayZapp purchases on them earn the 1% product rate, not 5%'],
+    perks:['Domestic lounge access: sources conflict, from 1 per quarter (₹1L spend in the previous quarter, max 4/year) to 8/year. Confirm in the HDFC app','1% fuel surcharge waiver (₹400–5,000 per transaction)','Contactless, Visa'],
+    watch:['No rewards on fuel, wallet, EMI, government and rent','Forex markup 2% + GST (about 2.36%)','Not a UPI card','Reward and redemption details have been changing across HDFC cards in 2026; check the current MITC'],
+    best:'The 10 partner brands, up to the 1,000 CashPoint monthly cap, especially Amazon, Flipkart, Swiggy, Zomato, Uber and Myntra.'
    }},
  { id:'atlas', name:'Axis Atlas', color:'#7a1f5c', unit:'Edge Miles', unitValue:1, forex:3.5, upi:false,
    benefits:{
-    fee:'₹5,000 + GST',
-    earn:['2 Edge Miles per ₹100 on all eligible spends, travel included (your confirmed rate)','Milestones: +2,500 EM at ₹3L, +2,500 at ₹7.5L, +5,000 at ₹15L annual spend','Welcome bonus: 2,500 EM on first transaction within 30 days (check current offer)','Transfer 1 EM → 2 partner miles (Air India, Singapore, Etihad, Accor, Marriott, etc.)'],
-    perks:['Tier system by annual spend (Silver ₹0 / Gold ₹7.5L / Platinum ₹15L): better lounge access and benefits at higher tiers','Domestic + international lounge visits (count rises with tier; ~8 domestic + 4 international at Silver)','Airport/Priority Pass-style lounge access','Complimentary golf and dining-offer programmes'],
-    watch:['Annual fee is high; only worth it if you spend on travel / transfer miles well','No rewards on fuel, rent, utilities, telecom, insurance, wallets, government, education, gold','Forex markup ~3.5%','Not UPI-enabled','Axis is not taking new Atlas applications at the moment; existing cardholders keep their benefits'],
-    best:'Spends where you want miles for partner transfers, and annual-spend milestones. At a flat 2 EM per ₹100 it beats Scapia only if you value an Edge Mile above ₹1.'
+    fee:'₹5,000 + GST (no spend-based waiver)',
+    earn:['5 Edge Miles per ₹100 on travel: direct airline and hotel bookings plus Axis Travel EDGE, up to ₹2L spend per month','2 Edge Miles per ₹100 on all other eligible spends (and on travel above the cap)','Milestones: +2,500 EM at ₹3L, +2,500 at ₹7.5L, +5,000 at ₹15L annual spend','Welcome bonus: 2,500 EM on the first transaction within about 37 days of card setup','Transfers to airline and hotel partners are capped (about 30,000 EM per year for Group A) and partner lists changed in 2026'],
+    perks:['Tiers by annual spend: Gold from ₹7.5L and Platinum from ₹15L, with 2,500 and 5,000 bonus EM on tier renewal','Lounge visits rise with tier; sources disagree on the exact counts, so check the Axis app','Complimentary golf and dining-offer programmes'],
+    watch:['No rewards on fuel, rent, wallets, government, insurance and utilities','Forex markup about 3.5%','Not UPI-enabled','Axis may have stopped issuing new Atlas cards. Existing cardholders keep their benefits','You told me your card earns 2 EM per ₹100; use the Settings toggle if you do not get the 5× travel rate'],
+    best:'Direct flight and hotel bookings (5 EM per ₹100) and spends where you want miles for transfers.'
    }},
- { id:'neu', name:'HDFC Tata Neu Infinity', color:'#1f3b8a', unit:'NeuCoins', unitValue:1, forex:3.5, upi:true,
+ { id:'neu', name:'HDFC Tata Neu Infinity', color:'#1f3b8a', unit:'NeuCoins', unitValue:1, forex:2.36, upi:true,
    benefits:{
-    fee:'₹1,499 + GST (waived on ₹3L spend in a year)',
-    earn:['5% NeuCoins on Tata Neu app/site and partner brands: BigBasket, Croma, Tata CLiQ, Tata 1mg, Westside, Titan, Air India, IHCL/Taj etc. — only when you transact via the Neu app/site','1.5% NeuCoins on all other eligible spends','UPI (RuPay variant): 1.5% when paying through the Tata Neu app, about 0.5% through other UPI apps, with a combined cap of about 500 NeuCoins per month','1 NeuCoin = ₹1 on Tata Neu purchases/redemption'],
-    perks:['Domestic lounge access (2 per quarter) + limited international lounge visits','1% fuel surcharge waiver','Extra NeuPass benefits (bonus coins on Tata brands)','RuPay variant works with UPI'],
-    watch:['The 5% only applies via Tata Neu; paying directly on a partner site gives you just the base rate','NeuCoins are mostly useful within the Tata ecosystem','No rewards on fuel, rent, wallets, government, insurance, utilities, education, gold','Forex markup ~3.5%'],
-    best:'Tata brands booked through the Neu app, and as the best general-purpose card for UPI payments.'
+    fee:'₹1,499 + GST (waived on ₹3L annual spend)',
+    earn:['5% NeuCoins on non-EMI spends at Tata Neu and partner Tata brands (BigBasket, Croma, Tata CLiQ, 1mg, Westside, Titan, Air India, IHCL/Taj and others)','1.5% NeuCoins on other eligible spends','NeuPass can add extra coins on selected categories through the Tata Neu app or site (not counted in this app)','UPI (RuPay): 0.5% NeuCoins, plus 1% more when paid with your Tata Neu UPI ID. UPI is capped at 500 NeuCoins per month','Caps of about 2,000 NeuCoins per month apply to groceries, utilities and telecom; rent on Tata brands about 1,000','1 NeuCoin = ₹1, usable only at Tata brands'],
+    perks:['Lounge access: one review lists 4 visits per year','1% fuel surcharge waiver, no reward coins on fuel','RuPay variant works with UPI'],
+    watch:['No coins on fuel, wallets, rent, government and online gaming','Forex markup 2% + GST (about 2.36%)','NeuCoins expire after about 12 months','From 25 Nov 2026, HDFC says coins earned on this card will no longer be auto-credited to your Tata Neu membership account; read HDFC\'s notice','One source says that since 1 May 2026 the 5% needs this card as the payment method'],
+    best:'Tata brands (5%), and a 1.5% fallback on general spends. NeuCoins only help if you shop at Tata brands.'
    }},
  { id:'scapia', name:'Scapia (Bank of Baroda)', color:'#16a05b', unit:'Scapia Coins', unitValue:0.2, forex:0, upi:true,
    benefits:{
     fee:'Lifetime free',
-    earn:['2% back as Scapia Coins on all eligible spends (1 coin = ₹0.20)','Up to 10% coins on travel bookings made through the Scapia app','Zero forex markup','UPI via RuPay variant'],
-    perks:['Lifetime free (no joining or annual fee)','Zero forex markup — the best of your four for international spends','Domestic airport lounge access once you hit a monthly spend threshold (reported as about ₹20K/month; sources differ, so confirm in the app)','Coins redeemable on Scapia travel bookings (and other partners)','Issued by BOBCARD (Bank of Baroda); features match the Federal Bank version'],
-    watch:['Coins are most valuable when spent on Scapia travel bookings','No rewards on fuel, rent, wallets, government','Coin and lounge terms can change; confirm current rates in the Scapia app'],
-    best:'International spends (0% forex), UPI payments, and generic spends where nothing else beats 2%.'
+    earn:['Rewards are paid in coins: 5 coins = ₹1. Quoted "10%" means 10 coins per ₹100, which is about 2% in value','Visa variant: 10 coins per ₹100 on eligible spends (about 2% value)','RuPay variant: 5 coins per ₹100, including UPI (about 1% value)','Scapia-app travel bookings: 20 coins per ₹100 (about 4% value). Federal Bank\'s listing says this is uncapped','Zero forex markup'],
+    perks:['Lifetime free','Unlimited domestic lounge access once you spend about ₹20,000 a month (sources differ on whether it counts the same or previous month)','Coins redeem only for travel bookings in the Scapia app and expire after 36 months','Co-branded with BOBCARD (yours), Federal Bank and Axis Bank; reward caps differ by issuer'],
+    watch:['No rewards on fuel, rent, wallets and government','The reward rate quoted for non-travel spends varies between sources (10%, 5% or 2% back); I used coin maths, so confirm in your app','Choose your variant in Settings (Visa or RuPay)'],
+    best:'International spends (0% forex), Scapia-app travel bookings (about 4%), and everyday spends at about 2% with the Visa variant.'
    }}
 ];
 
@@ -229,8 +233,8 @@ const $ = id => document.getElementById(id);
 const ymNow = () => new Date().toISOString().slice(0,7);
 let LOG = [];
 try { LOG = JSON.parse(localStorage.getItem('cp_log')||'[]'); } catch(e){}
-let EMV = 1;
-try { EMV = parseFloat(localStorage.getItem('cp_emv')||'1')||1; } catch(e){}
+let EMV = 1, ATL5 = true, SCV = 'visa';
+try { EMV = parseFloat(localStorage.getItem('cp_emv')||'1')||1; ATL5 = localStorage.getItem('cp_atl5')!=='0'; SCV = localStorage.getItem('cp_scv')==='rupay'?'rupay':'visa'; } catch(e){}
 const saveLog = () => { try{ localStorage.setItem('cp_log', JSON.stringify(LOG)); }catch(e){} };
 const inr = n => '₹'+Math.round(n).toLocaleString('en-IN');
 const inr2 = n => '₹'+n.toLocaleString('en-IN',{maximumFractionDigits:2});
@@ -266,41 +270,45 @@ function evaluate(card, ctx, amount, use){
       if(raw>left) out.warn=`Monthly 5% cap: only ${Math.round(left)} CashPoints left this month`;
       else if(left<300) out.warn=`Only ${Math.round(left)} CashPoints left in this month's 5% cap`;
     } else {
-      const left = Math.max(0, 1000 - use.mil1);
-      out.value=Math.min(amount*0.01,left); out.pct=out.value/amount*100; out.bucket='mil1'; out.note='1% CashPoints (base rate)';
-      if(amount*0.01>left) out.warn='Monthly 1% bucket cap reached';
+      out.value=amount*0.01; out.pct=1; out.note='1% CashPoints (base rate)';
     }
   }
   if(card.id==='atlas'){
-    const travel = false; // your Atlas earns a flat 2 EM per ₹100, including travel
+    const travel = ATL5 && TRAVEL.includes(ctx.cat) && (ctx.route==='direct'||ctx.route==='axis');
     if(travel){
       const left = Math.max(0, 200000 - use.atlas5);
       const at5 = Math.min(amount,left), rest = amount-at5;
       out.value = (at5*0.05 + rest*0.02)*EMV; out.pct=out.value/amount*100; out.bucket='atlas5';
-      out.note = ctx.route==='axis' ? '5 EM per ₹100 via Axis Travel Edge' : '5 EM per ₹100 on direct travel booking';
-      if(rest>0) out.warn='Monthly ₹2L travel cap exceeded — remainder earns 2 EM/₹100';
+      out.note = ctx.route==='axis' ? '5 EM per ₹100 via Axis Travel Edge' : '5 EM per ₹100 on direct airline/hotel booking';
+      if(rest>0) out.warn='Monthly ₹2L travel cap exceeded, remainder earns 2 EM/₹100';
     } else {
       out.value = amount*0.02*EMV; out.pct=out.value/amount*100;
-      out.note = TRAVEL.includes(ctx.cat) ? '2 EM per ₹100 (flat rate on your card, travel included)' : '2 EM per ₹100';
+      out.note = TRAVEL.includes(ctx.cat) ? (ATL5 ? '2 EM per ₹100 (booking through a third-party site does not earn the 5× travel rate)' : '2 EM per ₹100 (flat rate, as set in Settings)') : '2 EM per ₹100';
     }
     if(EMV!==1) out.note += ` · valued at ₹${EMV}/EM`;
   }
   if(card.id==='neu'){
-    if(has('tata') && ctx.route==='neu' && ctx.mode==='card'){
-      out.pct=5; out.value=amount*0.05; out.note='5% NeuCoins via Tata Neu app/site';
+    if(ctx.mode==='upi'){
+      const r = ctx.route==='neu' ? 1.5 : 0.5;
+      out.pct=r; out.value=Math.min(amount*r/100, 500);
+      out.note=`${r}% NeuCoins on UPI (${ctx.route==='neu'?'with your Tata Neu UPI ID':'other UPI IDs'})`;
+      out.warn='UPI NeuCoins are capped at about 500 per month combined';
+    } else if(has('tata')){
+      out.pct=5; out.value=amount*0.05; out.note='5% NeuCoins (Tata partner brand)';
+      if(ctx.cat==='groceries') out.warn='Grocery coins are capped at about 2,000 NeuCoins per month';
     } else {
-      const up = ctx.mode==='upi', r = up ? (ctx.route==='neu'?1.5:0.5) : 1.5;
-      out.pct=r; out.value=Math.min(amount*r/100, up?500:Infinity);
-      out.note = up ? `${r}% NeuCoins on UPI (${ctx.route==='neu'?'via Tata Neu app':'other UPI apps'})` : '1.5% NeuCoins (base rate)';
-      if(up) out.warn='UPI NeuCoins are capped at about 500 per month combined';
-      if(has('tata') && ctx.route!=='neu') out.warn='Tata brand: book via the Tata Neu app/site to get 5% instead';
+      out.pct=1.5; out.value=amount*0.015; out.note='1.5% NeuCoins (base rate)';
+      if(['groceries','utilities','telecom'].includes(ctx.cat)) out.warn='Capped at about 2,000 NeuCoins per month for this category';
     }
   }
   if(card.id==='scapia'){
+    const rup = SCV==='rupay', coinsPer100 = rup ? 5 : 10;
     if(TRAVEL.includes(ctx.cat) && ctx.route==='scapia' && ctx.mode==='card'){
-      out.pct=10; out.value=amount*0.10; out.note='10% coins on Scapia-app travel bookings';
-      out.warn='Monthly cap on booster coins applies — check the app; coins are mainly redeemable on travel';
-    } else { out.pct=2; out.value=amount*0.02; out.note='2% coins on all eligible spends (1 coin = ₹0.20)'; }
+      out.pct=4; out.value=amount*0.04; out.note='20 coins per ₹100 on Scapia-app travel bookings (about 4% value)';
+      out.warn='Coins redeem only on Scapia travel bookings';
+    } else if(ctx.mode==='upi'){
+      out.pct=1; out.value=amount*0.01; out.note='5 coins per ₹100 on UPI (RuPay, about 1% value)';
+    } else { out.pct=coinsPer100*0.2; out.value=amount*out.pct/100; out.note=`${coinsPer100} coins per ₹100 (${SCV==='rupay'?'RuPay':'Visa'} variant, about ${out.pct}% value)`; }
   }
   return fx(out, card, ctx, amount);
 }
@@ -440,55 +448,56 @@ function renderMax(){
   $('max').innerHTML = `
   <div class="card"><h2>The simple playbook</h2>
     <ol>
-      <li><b>Default card for everyday spends: Scapia</b> (2%, lifetime free) — or Axis Atlas if you value miles at ₹1.5+ each. Whichever you pick as default, never let a spend go on a card earning less than 1.5%.</li>
-      <li><b>Online shopping &amp; food:</b> HDFC Millennia on Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow (5%).</li>
-      <li><b>Tata brands</b> (BigBasket, Croma, 1mg, Westside, Titan, Air India, Taj): open the <b>Tata Neu app/site</b> and pay with the Tata Neu Infinity card (5%).</li>
-      <li><b>Flights &amp; hotels:</b> Atlas earns the same 2 EM/₹100 as everything else on your card, so pick by price and offers. Air India: Tata Neu app (5%). Scapia-app bookings: 10% booster. Compare in this app.</li>
-      <li><b>UPI:</b> use the RuPay-linked Scapia (2%) or Tata Neu via the Neu app (1.5%, capped ~500 coins/month) — Millennia and Atlas can't do UPI.</li>
-      <li><b>International:</b> Scapia (0% forex). The other three charge ~3.5%, which wipes out their rewards.</li>
+      <li><b>Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow:</b> HDFC Millennia at 5%, up to 1,000 CashPoints a month. After the cap, use Scapia (about 2%).</li>
+      <li><b>Tata brands</b> (BigBasket, Croma, 1mg, Westside, Titan, Air India, Taj): Tata Neu Infinity at 5%. Check the Tata Neu app for extra NeuPass coins.</li>
+      <li><b>Flights and hotels:</b> Axis Atlas gives 5 EM per ₹100 on direct bookings (if your card earns the 5× rate). Scapia-app bookings give about 4% in coins. Air India and Taj through Neu give 5%. Compare in the picker.</li>
+      <li><b>Everyday spends:</b> Scapia with the Visa variant (about 2%). Atlas also earns 2 EM per ₹100, which is better only if you value an Edge Mile above ₹1.</li>
+      <li><b>UPI:</b> Scapia RuPay (about 1%) or Tata Neu with your Neu UPI ID (1.5%, capped at about 500 coins a month). Millennia and Atlas cannot do UPI.</li>
+      <li><b>International:</b> Scapia, with 0% forex. Millennia and Neu charge about 2.36% and Atlas about 3.5%, which erases most of their rewards.</li>
     </ol>
   </div>
   <div class="card"><h2>Squeeze out extra value</h2>
-    <h3>Caps &amp; limits</h3>
+    <h3>Caps and limits</h3>
     <ul>
-      <li>Millennia's 5% stops at ~1,000 CashPoints/month (≈ ₹20,000 of partner spend). After that, switch to Scapia/Neu (2%/1.5%). Use <b>My month</b> to track this.</li>
-      <li>Atlas earns a flat 2 EM per ₹100 on your card, so there is no travel cap to manage.</li>
+      <li>Millennia's 5% stops at 1,000 CashPoints a month. Track it in My month.</li>
+      <li>Neu: UPI coins stop at about 500 a month. Groceries, utilities and telecom stop at about 2,000 each.</li>
+      <li>Atlas 5× travel counts up to ₹2L spend a month.</li>
     </ul>
-    <h3>Milestones &amp; fee waivers</h3>
+    <h3>Milestones and fee waivers</h3>
     <ul>
-      <li><b>Axis Atlas:</b> annual spend of ₹3L / ₹7.5L / ₹15L unlocks bonus EM and higher lounge tiers. Routing big annual spends (insurance excluded!) to Atlas can unlock 2,500+ EM.</li>
-      <li><b>HDFC Millennia:</b> ₹1L quarterly spend → lounge visits; ₹1L/year waives the ₹1,000 fee.</li>
-      <li><b>Tata Neu Infinity:</b> ₹3L annual spend waives the fee.</li>
-      <li>Plan quarterly: if you're ₹5–10k short of Millennia's quarterly ₹1L target, put planned purchases there.</li>
+      <li><b>Axis Atlas:</b> annual spend of ₹3L, ₹7.5L and ₹15L unlocks bonus EM and higher tiers. The ₹5,000 fee has no spend waiver.</li>
+      <li><b>HDFC Millennia:</b> ₹1L annual spend waives the ₹1,000 fee.</li>
+      <li><b>Tata Neu Infinity:</b> ₹3L annual spend waives the ₹1,499 fee.</li>
     </ul>
     <h3>Lounges</h3>
     <ul>
-      <li>Combined lounge access across the cards is generous: Millennia 8 domestic/yr, Neu 8 domestic + some international, Atlas 8+4 and up, Scapia (conditions apply). Use the card with the best remaining allowance and keep screenshots of eligibility.</li>
+      <li>Scapia gives unlimited domestic visits once you spend about ₹20,000 a month. Use it first, then Neu or Atlas visits. Counts for the other cards differ by source, so check each app.</li>
     </ul>
     <h3>Redemption</h3>
     <ul>
-      <li><b>Axis EM:</b> transfer to partners for flights/hotels (1 EM → 2 miles) — often 1.5–2 ₹/EM on business class/aspirational redemptions; avoid voucher redemptions at poor rates.</li>
-      <li><b>CashPoints / NeuCoins:</b> redeem at full ₹1 value (statement credit, Amazon/Flipkart vouchers, Tata purchases). Skip low-value catalogue items.</li>
-      <li><b>Scapia Coins:</b> spend them on Scapia travel bookings.</li>
+      <li><b>Axis EM:</b> transfer to airline and hotel partners for better value than vouchers. Partner lists and caps changed in 2026.</li>
+      <li><b>CashPoints:</b> redeem as statement credit at ₹1 each if no fee applies to you.</li>
+      <li><b>NeuCoins:</b> only for Tata brands, and they expire after about 12 months. Spend them before then.</li>
+      <li><b>Scapia Coins:</b> only for Scapia travel bookings and they expire after 36 months.</li>
     </ul>
     <h3>Avoid the traps</h3>
     <ul>
-      <li>Rent / wallet loads / gift-card loads: no rewards, plus fees — and some banks charge extra.</li>
-      <li>Fuel: no points, only a small surcharge waiver on ₹400–5,000 transactions; any card is fine.</li>
-      <li>Never carry a balance — interest (~3.5%/month) dwarfs every reward here. Set autopay for the full amount.</li>
-      <li>Check bank emails: HDFC and Axis revise reward rules, caps and exclusions several times a year.</li>
+      <li>Rent and wallet loads earn nothing on any card and add fees.</li>
+      <li>Fuel earns no points. You only get the small surcharge waiver on ₹400–5,000 transactions.</li>
+      <li>Never carry a balance. Interest of about 3.5% a month is far more than any reward here.</li>
+      <li>HDFC and Axis changed reward rules several times in 2026. Read each bank's emails.</li>
     </ul>
   </div>
   <div class="card"><h2>Quick rules of thumb</h2>
     <div class="tblwrap"><table>
       <tr><th>If you're paying for…</th><th>Use</th></tr>
       <tr><td>Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow</td><td>HDFC Millennia (5%)</td></tr>
-      <tr><td>BigBasket, Croma, 1mg, Westside, Titan via Neu app</td><td>Tata Neu Infinity (5%)</td></tr>
-      <tr><td>Flights / hotels</td><td>Scapia app booster (10%) or Tata Neu app for Air India / Taj (5%)</td></tr>
-      <tr><td>Scapia-app travel bookings</td><td>Scapia (booster coins)</td></tr>
-      <tr><td>UPI scan &amp; pay</td><td>Scapia (2%); Tata Neu RuPay via the Neu app (1.5%, ~500 coins/month cap)</td></tr>
+      <tr><td>BigBasket, Croma, 1mg, Westside, Titan, Air India, Taj</td><td>Tata Neu Infinity (5%)</td></tr>
+      <tr><td>Flights and hotels direct</td><td>Axis Atlas (5 EM per ₹100)</td></tr>
+      <tr><td>Travel booked in the Scapia app</td><td>Scapia (about 4% in coins)</td></tr>
+      <tr><td>UPI scan and pay</td><td>Tata Neu with Neu UPI ID (1.5%) or Scapia RuPay (about 1%)</td></tr>
       <tr><td>International spend</td><td>Scapia (0% forex)</td></tr>
-      <tr><td>Everything else</td><td>Scapia (2%) or Atlas (2 EM/₹100)</td></tr>
+      <tr><td>Everything else</td><td>Scapia Visa (about 2%) or Tata Neu (1.5%)</td></tr>
     </table></div>
   </div>`;
 }
@@ -505,7 +514,6 @@ function renderLog(){
   const yearAtlas = LOG.filter(l=>l.card==='atlas' && l.ym.slice(0,4)===ymNow().slice(0,4)).reduce((s,l)=>s+l.amount,0);
   $('meters').innerHTML =
     meter('HDFC Millennia — 5% bucket',u.mil5,1000,'CashPoints')+
-    meter('HDFC Millennia — 1% bucket',u.mil1,1000,'CashPoints')+
     meter('Axis Atlas — logged annual spend (₹3L milestone)',yearAtlas,300000,'₹')+
     `<h3>Totals this month</h3>`+ (CARDS.map(c=>{const b=byCard[c.id]||{amt:0,val:0};
       return `<div class="meta"><b>${c.name}</b>: ${inr(b.amt)} spent · ~${inr(b.val)} rewards</div>`}).join(''));
@@ -520,11 +528,13 @@ function renderLog(){
 (function init(){
   $('merchants').innerHTML = MERCHANTS.map(m=>`<option value="${m[0]}">`).join('');
   $('cat').innerHTML = Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
-  $('cat').value='other'; $('emv').value=EMV;
+  $('cat').value='other'; $('emv').value=EMV; $('atl').value=ATL5?'5':'2'; $('scv').value=SCV;
   $('what').addEventListener('input',onWhat);
   ['amt','route','mode','intl'].forEach(id=>$(id).addEventListener('input',render));
   $('cat').addEventListener('change',()=>{ if(!matchMerchant($('what').value)||matchMerchant($('what').value)[1]!==$('cat').value) detectedTags=[]; render(); });
   $('emv').addEventListener('input',()=>{EMV=parseFloat($('emv').value)||1; try{localStorage.setItem('cp_emv',EMV);}catch(e){}; render(); renderCheat();});
+  $('atl').addEventListener('change',()=>{ATL5=$('atl').value==='5'; try{localStorage.setItem('cp_atl5',ATL5?'1':'0');}catch(e){} render(); renderCheat();});
+  $('scv').addEventListener('change',()=>{SCV=$('scv').value; try{localStorage.setItem('cp_scv',SCV);}catch(e){} render(); renderCheat();});
   $('clearlog').onclick=()=>{ if(confirm('Clear all logged spends for this month?')){LOG=LOG.filter(l=>l.ym!==ymNow());saveLog();renderLog();render();} };
   $('nav').addEventListener('click',e=>{
     const t=e.target.dataset.t; if(!t) return;
