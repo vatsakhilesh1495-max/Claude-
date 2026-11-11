@@ -217,7 +217,7 @@ const CARDS = [
  { id:'scapia', name:'Scapia (Bank of Baroda)', color:'#16a05b', unit:'Scapia Coins', unitValue:0.2, forex:0, upi:true,
    benefits:{
     fee:'Lifetime free',
-    earn:['2% back as Scapia Coins on all eligible spends (1 coin = ₹0.20)','Up to 20% coins on travel bookings made through the Scapia app','Zero forex markup','UPI via RuPay variant'],
+    earn:['2% back as Scapia Coins on all eligible spends (1 coin = ₹0.20)','Up to 10% coins on travel bookings made through the Scapia app','Zero forex markup','UPI via RuPay variant'],
     perks:['Lifetime free (no joining or annual fee)','Zero forex markup — the best of your four for international spends','Domestic airport lounge access once you hit a monthly spend threshold (reported as about ₹20K/month; sources differ, so confirm in the app)','Coins redeemable on Scapia travel bookings (and other partners)','Issued by BOBCARD (Bank of Baroda); features match the Federal Bank version'],
     watch:['Coins are most valuable when spent on Scapia travel bookings','No rewards on fuel, rent, wallets, government','Coin and lounge terms can change; confirm current rates in the Scapia app'],
     best:'International spends (0% forex), UPI payments, and generic spends where nothing else beats 2%.'
@@ -298,7 +298,7 @@ function evaluate(card, ctx, amount, use){
   }
   if(card.id==='scapia'){
     if(TRAVEL.includes(ctx.cat) && ctx.route==='scapia' && ctx.mode==='card'){
-      out.pct=20; out.value=amount*0.20; out.note='Up to 20% coins on Scapia-app travel bookings';
+      out.pct=10; out.value=amount*0.10; out.note='10% coins on Scapia-app travel bookings';
       out.warn='Monthly cap on booster coins applies — check the app; coins are mainly redeemable on travel';
     } else { out.pct=2; out.value=amount*0.02; out.note='2% coins on all eligible spends (1 coin = ₹0.20)'; }
   }
