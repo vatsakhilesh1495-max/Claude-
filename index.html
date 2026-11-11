@@ -201,10 +201,10 @@ const CARDS = [
  { id:'atlas', name:'Axis Atlas', color:'#7a1f5c', unit:'Edge Miles', unitValue:1, forex:3.5, upi:false,
    benefits:{
     fee:'₹5,000 + GST',
-    earn:['5 Edge Miles per ₹100 on travel — direct airline/hotel bookings and Axis Travel Edge (cap ₹2L spend/month)','2 Edge Miles per ₹100 on everything else (eligible)','Milestones: +2,500 EM at ₹3L, +2,500 at ₹7.5L, +5,000 at ₹15L annual spend','Welcome bonus: 2,500 EM on first transaction within 30 days (check current offer)','Transfer 1 EM → 2 partner miles (Air India, Singapore, Etihad, Accor, Marriott, etc.)'],
+    earn:['2 Edge Miles per ₹100 on all eligible spends, travel included (your confirmed rate)','Milestones: +2,500 EM at ₹3L, +2,500 at ₹7.5L, +5,000 at ₹15L annual spend','Welcome bonus: 2,500 EM on first transaction within 30 days (check current offer)','Transfer 1 EM → 2 partner miles (Air India, Singapore, Etihad, Accor, Marriott, etc.)'],
     perks:['Tier system by annual spend (Silver ₹0 / Gold ₹7.5L / Platinum ₹15L): better lounge access and benefits at higher tiers','Domestic + international lounge visits (count rises with tier; ~8 domestic + 4 international at Silver)','Airport/Priority Pass-style lounge access','Complimentary golf and dining-offer programmes'],
     watch:['Annual fee is high; only worth it if you spend on travel / transfer miles well','No rewards on fuel, rent, utilities, telecom, insurance, wallets, government, education, gold','Forex markup ~3.5%','Not UPI-enabled','Axis is not taking new Atlas applications at the moment; existing cardholders keep their benefits'],
-    best:'Flights and hotels booked directly, and as your "everything else" card when you value miles above 1:1 cash.'
+    best:'Spends where you want miles for partner transfers, and annual-spend milestones. At a flat 2 EM per ₹100 it beats Scapia only if you value an Edge Mile above ₹1.'
    }},
  { id:'neu', name:'HDFC Tata Neu Infinity', color:'#1f3b8a', unit:'NeuCoins', unitValue:1, forex:3.5, upi:true,
    benefits:{
@@ -272,7 +272,7 @@ function evaluate(card, ctx, amount, use){
     }
   }
   if(card.id==='atlas'){
-    const travel = TRAVEL.includes(ctx.cat) && (ctx.route==='direct'||ctx.route==='axis');
+    const travel = false; // your Atlas earns a flat 2 EM per ₹100, including travel
     if(travel){
       const left = Math.max(0, 200000 - use.atlas5);
       const at5 = Math.min(amount,left), rest = amount-at5;
@@ -281,7 +281,7 @@ function evaluate(card, ctx, amount, use){
       if(rest>0) out.warn='Monthly ₹2L travel cap exceeded — remainder earns 2 EM/₹100';
     } else {
       out.value = amount*0.02*EMV; out.pct=out.value/amount*100;
-      out.note = TRAVEL.includes(ctx.cat) ? '2 EM per ₹100 (third-party/portal booking does not qualify for 5×)' : '2 EM per ₹100';
+      out.note = TRAVEL.includes(ctx.cat) ? '2 EM per ₹100 (flat rate on your card, travel included)' : '2 EM per ₹100';
     }
     if(EMV!==1) out.note += ` · valued at ₹${EMV}/EM`;
   }
@@ -443,7 +443,7 @@ function renderMax(){
       <li><b>Default card for everyday spends: Scapia</b> (2%, lifetime free) — or Axis Atlas if you value miles at ₹1.5+ each. Whichever you pick as default, never let a spend go on a card earning less than 1.5%.</li>
       <li><b>Online shopping &amp; food:</b> HDFC Millennia on Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow (5%).</li>
       <li><b>Tata brands</b> (BigBasket, Croma, 1mg, Westside, Titan, Air India, Taj): open the <b>Tata Neu app/site</b> and pay with the Tata Neu Infinity card (5%).</li>
-      <li><b>Flights &amp; hotels:</b> book directly on the airline/hotel site (or Axis Travel Edge) with Axis Atlas (5 EM/₹100). Air India → try Neu app (5%) vs Atlas, and compare in this app.</li>
+      <li><b>Flights &amp; hotels:</b> Atlas earns the same 2 EM/₹100 as everything else on your card, so pick by price and offers. Air India: Tata Neu app (5%). Scapia-app bookings: 10% booster. Compare in this app.</li>
       <li><b>UPI:</b> use the RuPay-linked Scapia (2%) or Tata Neu via the Neu app (1.5%, capped ~500 coins/month) — Millennia and Atlas can't do UPI.</li>
       <li><b>International:</b> Scapia (0% forex). The other three charge ~3.5%, which wipes out their rewards.</li>
     </ol>
@@ -452,7 +452,7 @@ function renderMax(){
     <h3>Caps &amp; limits</h3>
     <ul>
       <li>Millennia's 5% stops at ~1,000 CashPoints/month (≈ ₹20,000 of partner spend). After that, switch to Scapia/Neu (2%/1.5%). Use <b>My month</b> to track this.</li>
-      <li>Atlas 5× travel counts up to ₹2L spend/month — plenty for most people.</li>
+      <li>Atlas earns a flat 2 EM per ₹100 on your card, so there is no travel cap to manage.</li>
     </ul>
     <h3>Milestones &amp; fee waivers</h3>
     <ul>
@@ -484,7 +484,7 @@ function renderMax(){
       <tr><th>If you're paying for…</th><th>Use</th></tr>
       <tr><td>Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow</td><td>HDFC Millennia (5%)</td></tr>
       <tr><td>BigBasket, Croma, 1mg, Westside, Titan via Neu app</td><td>Tata Neu Infinity (5%)</td></tr>
-      <tr><td>Flights / hotels direct</td><td>Axis Atlas (5 EM/₹100)</td></tr>
+      <tr><td>Flights / hotels</td><td>Scapia app booster (10%) or Tata Neu app for Air India / Taj (5%)</td></tr>
       <tr><td>Scapia-app travel bookings</td><td>Scapia (booster coins)</td></tr>
       <tr><td>UPI scan &amp; pay</td><td>Scapia (2%); Tata Neu RuPay via the Neu app (1.5%, ~500 coins/month cap)</td></tr>
       <tr><td>International spend</td><td>Scapia (0% forex)</td></tr>
@@ -506,7 +506,6 @@ function renderLog(){
   $('meters').innerHTML =
     meter('HDFC Millennia — 5% bucket',u.mil5,1000,'CashPoints')+
     meter('HDFC Millennia — 1% bucket',u.mil1,1000,'CashPoints')+
-    meter('Axis Atlas — 5× travel spend',u.atlas5,200000,'₹')+
     meter('Axis Atlas — logged annual spend (₹3L milestone)',yearAtlas,300000,'₹')+
     `<h3>Totals this month</h3>`+ (CARDS.map(c=>{const b=byCard[c.id]||{amt:0,val:0};
       return `<div class="meta"><b>${c.name}</b>: ${inr(b.amt)} spent · ~${inr(b.val)} rewards</div>`}).join(''));
