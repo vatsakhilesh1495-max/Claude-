@@ -128,7 +128,7 @@ details{margin:8px 0} summary{cursor:pointer;font-weight:600}
   <section id="t-log" class="hide">
     <div class="card">
       <h2>This month (<span id="ym"></span>)</h2>
-      <p class="sub">Tap “Log this spend” on a result to track it. The picker then accounts for monthly caps automatically (e.g. Millennia's 5% cap).</p>
+      <p class="sub">Tap “Log this spend” on a result to track it. The picker then accounts for monthly caps automatically (e.g. Millennia's 5% cap and Tata Neu's UPI cap).</p>
       <div id="meters"></div>
     </div>
     <div class="card">
@@ -240,9 +240,9 @@ const inr = n => '₹'+Math.round(n).toLocaleString('en-IN');
 const inr2 = n => '₹'+n.toLocaleString('en-IN',{maximumFractionDigits:2});
 
 function usage(){
-  const u = {mil5:0, mil1:0, atlas5:0};
+  const u = {mil5:0, mil1:0, atlas5:0, neuupi:0};
   LOG.filter(l=>l.ym===ymNow()).forEach(l=>{
-    if(l.bucket==='mil5'||l.bucket==='mil1') u[l.bucket]+=l.value;
+    if(l.bucket==='mil5'||l.bucket==='mil1'||l.bucket==='neuupi') u[l.bucket]+=l.value;
     if(l.bucket==='atlas5') u.atlas5+=l.amount;
   });
   return u;
@@ -290,9 +290,11 @@ function evaluate(card, ctx, amount, use){
   if(card.id==='neu'){
     if(ctx.mode==='upi'){
       const r = ctx.route==='neu' ? 1.5 : 0.5;
-      out.pct=r; out.value=Math.min(amount*r/100, 500);
+      const left = Math.max(0, 500 - use.neuupi), raw = amount*r/100;
+      out.value=Math.min(raw,left); out.pct=out.value/amount*100; out.bucket='neuupi';
       out.note=`${r}% NeuCoins on UPI (${ctx.route==='neu'?'with your Tata Neu UPI ID':'other UPI IDs'})`;
-      out.warn='UPI NeuCoins are capped at about 500 per month combined';
+      out.warn = raw>left ? `Monthly UPI cap: only ${Math.round(left)} NeuCoins left this month` :
+        left<150 ? `Only ${Math.round(left)} UPI NeuCoins left this month (cap about 500)` : 'UPI NeuCoins are capped at about 500 per month combined';
     } else if(has('tata')){
       out.pct=5; out.value=amount*0.05; out.note='5% NeuCoins (Tata partner brand)';
       if(ctx.cat==='groceries') out.warn='Grocery coins are capped at about 2,000 NeuCoins per month';
@@ -424,7 +426,7 @@ function renderCheat(){
     if(cat==='fuel') direct='Any card (1% surcharge waiver only)';
     let better='—';
     let top=null;
-    routes.slice(1).forEach(r=>CARDS.forEach(c=>{const e=evaluate(c,{...base,route:r},1000,{mil5:0,mil1:0,atlas5:0});
+    routes.slice(1).forEach(r=>CARDS.forEach(c=>{const e=evaluate(c,{...base,route:r},1000,{mil5:0,mil1:0,atlas5:0,neuupi:0});
       if(!e.na&&(!top||e.net>top.e.net))top={e,r};}));
     if(top && top.e.net>b.net*1.1+0.5) better=`${rn[top.r]} → <b>${top.e.card.name}</b> <span class="meta">${top.e.pct.toFixed(1)}%</span>`;
     h+=`<tr><td>${label}</td><td>${direct}</td><td>${better}</td></tr>`;
@@ -514,6 +516,7 @@ function renderLog(){
   const yearAtlas = LOG.filter(l=>l.card==='atlas' && l.ym.slice(0,4)===ymNow().slice(0,4)).reduce((s,l)=>s+l.amount,0);
   $('meters').innerHTML =
     meter('HDFC Millennia — 5% bucket',u.mil5,1000,'CashPoints')+
+    meter('Tata Neu Infinity — UPI coins',u.neuupi,500,'NeuCoins')+
     meter('Axis Atlas — logged annual spend (₹3L milestone)',yearAtlas,300000,'₹')+
     `<h3>Totals this month</h3>`+ (CARDS.map(c=>{const b=byCard[c.id]||{amt:0,val:0};
       return `<div class="meta"><b>${c.name}</b>: ${inr(b.amt)} spent · ~${inr(b.val)} rewards</div>`}).join(''));
