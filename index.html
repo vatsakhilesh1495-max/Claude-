@@ -209,17 +209,17 @@ const CARDS = [
  { id:'neu', name:'HDFC Tata Neu Infinity', color:'#1f3b8a', unit:'NeuCoins', unitValue:1, forex:3.5, upi:true,
    benefits:{
     fee:'₹1,499 + GST (waived on ₹3L spend in a year)',
-    earn:['5% NeuCoins on Tata Neu app/site and partner brands: BigBasket, Croma, Tata CLiQ, Tata 1mg, Westside, Titan, Air India, IHCL/Taj etc. — only when you transact via the Neu app/site','1.5% NeuCoins on all other eligible spends','1.5% on UPI spends (RuPay variant, linked to UPI)','1 NeuCoin = ₹1 on Tata Neu purchases/redemption'],
+    earn:['5% NeuCoins on Tata Neu app/site and partner brands: BigBasket, Croma, Tata CLiQ, Tata 1mg, Westside, Titan, Air India, IHCL/Taj etc. — only when you transact via the Neu app/site','1.5% NeuCoins on all other eligible spends','UPI (RuPay variant): 1.5% when paying through the Tata Neu app, about 0.5% through other UPI apps, with a combined cap of about 500 NeuCoins per month','1 NeuCoin = ₹1 on Tata Neu purchases/redemption'],
     perks:['Domestic lounge access (2 per quarter) + limited international lounge visits','1% fuel surcharge waiver','Extra NeuPass benefits (bonus coins on Tata brands)','RuPay variant works with UPI'],
     watch:['The 5% only applies via Tata Neu; paying directly on a partner site gives you just the base rate','NeuCoins are mostly useful within the Tata ecosystem','No rewards on fuel, rent, wallets, government, insurance, utilities, education, gold','Forex markup ~3.5%'],
     best:'Tata brands booked through the Neu app, and as the best general-purpose card for UPI payments.'
    }},
- { id:'scapia', name:'Scapia (Federal Bank)', color:'#16a05b', unit:'Scapia Coins', unitValue:0.2, forex:0, upi:true,
+ { id:'scapia', name:'Scapia (Bank of Baroda)', color:'#16a05b', unit:'Scapia Coins', unitValue:0.2, forex:0, upi:true,
    benefits:{
     fee:'Lifetime free',
     earn:['2% back as Scapia Coins on all eligible spends (1 coin = ₹0.20)','Up to 20% coins on travel bookings made through the Scapia app','Zero forex markup','UPI via RuPay variant'],
-    perks:['Lifetime-free card with Visa/RuPay options','Zero forex markup — the best of your four for international spends','Domestic lounge access on qualifying spends (check current conditions)','Coins redeemable on Scapia travel bookings (and other partners)'],
-    watch:['Coins are most valuable when spent on Scapia travel bookings','No rewards on fuel, rent, wallets, government','Note: Scapia is issued by Federal Bank. If your card is from Bank of Baroda, the rules may differ — update the CARDS block.'],
+    perks:['Lifetime free (no joining or annual fee)','Zero forex markup — the best of your four for international spends','Domestic airport lounge access once you hit a monthly spend threshold (reported as about ₹20K/month; sources differ, so confirm in the app)','Coins redeemable on Scapia travel bookings (and other partners)','Issued by BOBCARD (Bank of Baroda); features match the Federal Bank version'],
+    watch:['Coins are most valuable when spent on Scapia travel bookings','No rewards on fuel, rent, wallets, government','Coin and lounge terms can change; confirm current rates in the Scapia app'],
     best:'International spends (0% forex), UPI payments, and generic spends where nothing else beats 2%.'
    }}
 ];
@@ -289,8 +289,10 @@ function evaluate(card, ctx, amount, use){
     if(has('tata') && ctx.route==='neu' && ctx.mode==='card'){
       out.pct=5; out.value=amount*0.05; out.note='5% NeuCoins via Tata Neu app/site';
     } else {
-      out.pct=1.5; out.value=amount*0.015;
-      out.note = ctx.mode==='upi' ? '1.5% NeuCoins on UPI (RuPay)' : '1.5% NeuCoins (base rate)';
+      const up = ctx.mode==='upi', r = up ? (ctx.route==='neu'?1.5:0.5) : 1.5;
+      out.pct=r; out.value=Math.min(amount*r/100, up?500:Infinity);
+      out.note = up ? `${r}% NeuCoins on UPI (${ctx.route==='neu'?'via Tata Neu app':'other UPI apps'})` : '1.5% NeuCoins (base rate)';
+      if(up) out.warn='UPI NeuCoins are capped at about 500 per month combined';
       if(has('tata') && ctx.route!=='neu') out.warn='Tata brand: book via the Tata Neu app/site to get 5% instead';
     }
   }
@@ -442,7 +444,7 @@ function renderMax(){
       <li><b>Online shopping &amp; food:</b> HDFC Millennia on Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow (5%).</li>
       <li><b>Tata brands</b> (BigBasket, Croma, 1mg, Westside, Titan, Air India, Taj): open the <b>Tata Neu app/site</b> and pay with the Tata Neu Infinity card (5%).</li>
       <li><b>Flights &amp; hotels:</b> book directly on the airline/hotel site (or Axis Travel Edge) with Axis Atlas (5 EM/₹100). Air India → try Neu app (5%) vs Atlas, and compare in this app.</li>
-      <li><b>UPI:</b> use the RuPay-linked Tata Neu (1.5%) or Scapia (2%) — Millennia and Atlas can't do UPI.</li>
+      <li><b>UPI:</b> use the RuPay-linked Scapia (2%) or Tata Neu via the Neu app (1.5%, capped ~500 coins/month) — Millennia and Atlas can't do UPI.</li>
       <li><b>International:</b> Scapia (0% forex). The other three charge ~3.5%, which wipes out their rewards.</li>
     </ol>
   </div>
@@ -484,7 +486,7 @@ function renderMax(){
       <tr><td>BigBasket, Croma, 1mg, Westside, Titan via Neu app</td><td>Tata Neu Infinity (5%)</td></tr>
       <tr><td>Flights / hotels direct</td><td>Axis Atlas (5 EM/₹100)</td></tr>
       <tr><td>Scapia-app travel bookings</td><td>Scapia (booster coins)</td></tr>
-      <tr><td>UPI scan &amp; pay</td><td>Scapia (2%) / Tata Neu RuPay (1.5%)</td></tr>
+      <tr><td>UPI scan &amp; pay</td><td>Scapia (2%); Tata Neu RuPay via the Neu app (1.5%, ~500 coins/month cap)</td></tr>
       <tr><td>International spend</td><td>Scapia (0% forex)</td></tr>
       <tr><td>Everything else</td><td>Scapia (2%) or Atlas (2 EM/₹100)</td></tr>
     </table></div>
