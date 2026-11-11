@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card Picker</title>
+<style>
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#16181d; --muted:#656b78; --line:#e3e6ec;
+  --accent:#2f5bea; --good:#0f8a4b; --warn:#b36b00; --bad:#c23b3b; --chip:#eef1f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101216; --surface:#181b21; --text:#eceef2; --muted:#9aa1ae; --line:#2a2e37;
+    --accent:#7a98ff; --good:#4cd08a; --warn:#f0b050; --bad:#ff7b7b; --chip:#222630;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101216; --surface:#181b21; --text:#eceef2; --muted:#9aa1ae; --line:#2a2e37;
+  --accent:#7a98ff; --good:#4cd08a; --warn:#f0b050; --bad:#ff7b7b; --chip:#222630;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:8px 0 2px}
+h2{font-size:17px;margin:0 0 10px}
+h3{font-size:15px;margin:14px 0 6px}
+.sub{color:var(--muted);margin:0 0 14px}
+nav{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px}
+nav button{background:none;border:0;color:var(--muted);font:inherit;font-weight:600;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--accent);color:#fff}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em}
+input,select{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.chk{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--text);font-size:14px;text-transform:none;letter-spacing:0;font-weight:500}
+.chk input{width:auto}
+.res{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px;background:var(--surface)}
+.res.best{border:2px solid var(--good)}
+.res .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.name{font-weight:700;display:flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.val{font-weight:800;font-size:18px}
+.best .val{color:var(--good)}
+.badge{font-size:11px;background:var(--good);color:#fff;border-radius:99px;padding:2px 8px;font-weight:700}
+.meta{color:var(--muted);font-size:13px;margin-top:4px}
+.warn{color:var(--warn)} .bad{color:var(--bad)} .good{color:var(--good)}
+.tip{background:var(--chip);border-radius:8px;padding:10px;margin-top:12px;font-size:14px}
+.chip{display:inline-block;background:var(--chip);border-radius:99px;padding:3px 10px;font-size:12px;margin:2px 4px 2px 0}
+button.act{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--accent);color:var(--accent);background:none;border-radius:8px;padding:4px 10px;cursor:pointer;margin-top:8px}
+button.act:hover{background:var(--accent);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tblwrap{overflow-x:auto}
+ul{padding-left:20px;margin:6px 0} li{margin:3px 0}
+.bar{height:8px;background:var(--chip);border-radius:99px;overflow:hidden;margin-top:4px}
+.bar>i{display:block;height:100%;background:var(--accent)}
+.disc{font-size:12px;color:var(--muted);margin-top:18px}
+.hide{display:none}
+details{margin:8px 0} summary{cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💳 Card Picker</h1>
+  <p class="sub">Type what you're spending on. See which of your 4 cards earns the most.</p>
+  <nav id="nav">
+    <button data-t="pick" class="on">Which card?</button>
+    <button data-t="cheat">Cheat sheet</button>
+    <button data-t="benefits">Card benefits</button>
+    <button data-t="max">How to maximise</button>
+    <button data-t="log">My month</button>
+  </nav>
+
+  <section id="t-pick">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label for="what">What are you spending on?</label>
+          <input id="what" list="merchants" placeholder="e.g. Swiggy, IndiGo, groceries, electricity…" autocomplete="off">
+          <datalist id="merchants"></datalist>
+        </div>
+        <div>
+          <label for="amt">Amount (₹)</label>
+          <input id="amt" type="number" min="0" value="1000" inputmode="decimal">
+        </div>
+        <div>
+          <label for="cat">Category</label>
+          <select id="cat"></select>
+        </div>
+        <div>
+          <label for="route">Where / how are you booking?</label>
+          <select id="route">
+            <option value="direct">Directly (merchant site/app/store)</option>
+            <option value="neu">Via Tata Neu app/site</option>
+            <option value="scapia">Via Scapia app</option>
+            <option value="axis">Via Axis Travel Edge portal</option>
+            <option value="ota">Via third-party site (MakeMyTrip, Cleartrip…)</option>
+          </select>
+        </div>
+        <div>
+          <label for="mode">Payment mode</label>
+          <select id="mode">
+            <option value="card">Card (online / tap / swipe)</option>
+            <option value="upi">UPI (scan &amp; pay)</option>
+          </select>
+        </div>
+      </div>
+      <label class="chk"><input type="checkbox" id="intl"> International / foreign-currency transaction</label>
+      <div id="detected" class="meta"></div>
+    </div>
+    <div id="results"></div>
+  </section>
+
+  <section id="t-cheat" class="hide">
+    <div class="card">
+      <h2>Best card by spend type</h2>
+      <p class="sub">Computed from the rules in this app (fresh month, no caps hit). “Better route” shows where a different booking route beats paying directly.</p>
+      <div class="tblwrap"><table id="cheat"></table></div>
+    </div>
+  </section>
+
+  <section id="t-benefits" class="hide"><div id="benefits"></div></section>
+  <section id="t-max" class="hide"><div id="max"></div></section>
+
+  <section id="t-log" class="hide">
+    <div class="card">
+      <h2>This month (<span id="ym"></span>)</h2>
+      <p class="sub">Tap “Log this spend” on a result to track it. The picker then accounts for monthly caps automatically (e.g. Millennia's 5% cap).</p>
+      <div id="meters"></div>
+    </div>
+    <div class="card">
+      <h2>Logged spends</h2>
+      <div class="tblwrap"><table id="logtable"></table></div>
+      <button class="act" id="clearlog">Clear this month's log</button>
+    </div>
+    <div class="card">
+      <h2>Settings</h2>
+      <label for="emv">Value of 1 Axis Edge Mile (₹)</label>
+      <input id="emv" type="number" step="0.05" min="0.2" max="3" value="1">
+      <p class="meta">₹1 is the conservative cash-like value. Transferring to airline/hotel partners (1 EM → 2 partner miles) can be worth ₹1.2–2 per EM if you redeem well. Raising this makes Atlas rank higher.</p>
+    </div>
+  </section>
+
+  <p class="disc">⚠️ Rates, caps and perks are based on publicly known terms as of early 2026 and <b>banks change them often</b> (HDFC and Axis especially). Treat results as a strong guide, and confirm in each bank's app / MITC. Rules live in the <code>CARDS</code> block at the top of the script in this file, so they're easy to edit.</p>
+</div>
+
+<script>
+/* ============================ DATA ============================ */
+const CATS = {
+  groceries:'Groceries / supermarket', delivery:'Food delivery / quick commerce', dining:'Dining out',
+  shopping:'Online / retail shopping', electronics:'Electronics & appliances', flight:'Flights', hotel:'Hotels',
+  cab:'Cabs / ride-hailing', entertainment:'Movies / OTT / entertainment', health:'Health / pharmacy / fitness',
+  fuel:'Fuel', utilities:'Utility bills (electricity, gas, water)', telecom:'Mobile / broadband / DTH',
+  insurance:'Insurance premiums', rent:'Rent (via CRED/NoBroker etc.)', wallet:'Wallet top-ups / gift cards',
+  education:'Education / school fees', govt:'Government / tax / challans', jewellery:'Jewellery / gold', other:'Everything else'
+};
+// tags: m5 = HDFC Millennia 5% partner merchant ; tata = Tata Neu 5% brand
+const MERCHANTS = [
+  ['Amazon','shopping',['m5']],['Flipkart','shopping',['m5']],['Myntra','shopping',['m5']],
+  ['Swiggy','delivery',['m5']],['Zomato','delivery',['m5']],['Uber','cab',['m5']],
+  ['BookMyShow','entertainment',['m5']],['Cult.fit','health',['m5']],['Sony LIV','entertainment',['m5']],
+  ['Tata CLiQ','shopping',['m5','tata']],
+  ['BigBasket','groceries',['tata']],['Croma','electronics',['tata']],['Tata 1mg','health',['tata']],
+  ['Westside','shopping',['tata']],['Titan watches','shopping',['tata']],['Taj Hotels (IHCL)','hotel',['tata']],
+  ['Air India','flight',['tata']],['Air India Express','flight',['tata']],['Tata Neu','shopping',['tata']],
+  ['Blinkit','delivery',[]],['Zepto','delivery',[]],['Swiggy Instamart','delivery',[]],['DMart','groceries',[]],
+  ['Reliance Smart / Fresh','groceries',[]],['Nykaa','shopping',[]],['Ajio','shopping',[]],
+  ['IndiGo','flight',[]],['Akasa Air','flight',[]],['SpiceJet','flight',[]],
+  ['MakeMyTrip','flight',[]],['Cleartrip','flight',[]],['Goibibo','flight',[]],['Booking.com / Agoda','hotel',[]],
+  ['Marriott','hotel',[]],['Hyatt','hotel',[]],['OYO','hotel',[]],
+  ['Ola','cab',[]],['Rapido','cab',[]],['Netflix','entertainment',[]],['Spotify','entertainment',[]],['PVR INOX','entertainment',[]],
+  ['Apollo Pharmacy','health',[]],['PharmEasy','health',[]],
+  ['Petrol pump (HP/IOCL/BPCL)','fuel',[]],['Electricity bill','utilities',[]],['Gas / water bill','utilities',[]],
+  ['Jio / Airtel recharge','telecom',[]],['LIC / health insurance','insurance',[]],['Rent via CRED','rent',[]],
+  ['Paytm / PhonePe wallet load','wallet',[]],['Amazon Pay gift card','wallet',[]],['School / college fees','education',[]],
+  ['Income tax / GST','govt',[]],['Tanishq / jewellery','jewellery',[]],
+  ['Restaurant','dining',[]],['Starbucks','dining',[]],['Supermarket','groceries',[]]
+];
+const TRAVEL = ['flight','hotel'];
+const NO_REWARD = {
+  millennia:['fuel','rent','wallet','govt','insurance','utilities','education','jewellery'],
+  atlas:['fuel','rent','wallet','govt','insurance','utilities','telecom','education','jewellery'],
+  neu:['fuel','rent','wallet','govt','insurance','utilities','education','jewellery'],
+  scapia:['fuel','rent','wallet','govt']
+};
+const FUEL_WAIVER = 1; // % surcharge waiver approx (txn ₹400–5,000, ~₹250/month cap)
+
+const CARDS = [
+ { id:'millennia', name:'HDFC Millennia', color:'#d6402f', unit:'CashPoints', unitValue:1,
+   forex:3.5, upi:false,
+   benefits:{
+    fee:'₹1,000 + GST (waived on ₹1L spend in a year)',
+    earn:['5% CashPoints on 10 partner merchants: Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow, Cult.fit, Sony LIV, Tata CLiQ','1% CashPoints on all other eligible spends','1 CashPoint = ₹1 (statement credit / Amazon & Flipkart vouchers; some catalogue items are lower value)','Caps: ~1,000 CashPoints/month on the 5% bucket and ~1,000/month on the 1% bucket'],
+    perks:['Domestic lounge: 2 per quarter on ₹1L spend in the previous quarter (8 / year)','Quarterly milestone: ₹1L spend → ₹1,000 voucher (check current offer)','1% fuel surcharge waiver (₹400–5,000 txn, up to ₹250/month)','Contactless, Visa Signature'],
+    watch:['No/limited rewards on fuel, rent, wallets, government, insurance, utilities, education, gold','Forex markup ~3.5%','Not a UPI card — cannot be used for UPI scan-and-pay'],
+    best:'The 10 partner merchants, especially Amazon, Flipkart, Swiggy, Zomato, Uber and Myntra (up to the monthly cap).'
+   }},
+ { id:'atlas', name:'Axis Atlas', color:'#7a1f5c', unit:'Edge Miles', unitValue:1, forex:3.5, upi:false,
+   benefits:{
+    fee:'₹5,000 + GST',
+    earn:['5 Edge Miles per ₹100 on travel — direct airline/hotel bookings and Axis Travel Edge (cap ₹2L spend/month)','2 Edge Miles per ₹100 on everything else (eligible)','Milestones: +2,500 EM at ₹3L, +2,500 at ₹7.5L, +5,000 at ₹15L annual spend','Welcome bonus: 2,500 EM on first transaction within 30 days (check current offer)','Transfer 1 EM → 2 partner miles (Air India, Singapore, Etihad, Accor, Marriott, etc.)'],
+    perks:['Tier system by annual spend (Silver ₹0 / Gold ₹7.5L / Platinum ₹15L): better lounge access and benefits at higher tiers','Domestic + international lounge visits (count rises with tier; ~8 domestic + 4 international at Silver)','Airport/Priority Pass-style lounge access','Complimentary golf and dining-offer programmes'],
+    watch:['Annual fee is high; only worth it if you spend on travel / transfer miles well','No rewards on fuel, rent, utilities, telecom, insurance, wallets, government, education, gold','Forex markup ~3.5%','Not UPI-enabled'],
+    best:'Flights and hotels booked directly, and as your "everything else" card when you value miles above 1:1 cash.'
+   }},
+ { id:'neu', name:'HDFC Tata Neu Infinity', color:'#1f3b8a', unit:'NeuCoins', unitValue:1, forex:3.5, upi:true,
+   benefits:{
+    fee:'₹1,499 + GST (waived on ₹3L spend in a year)',
+    earn:['5% NeuCoins on Tata Neu app/site and partner brands: BigBasket, Croma, Tata CLiQ, Tata 1mg, Westside, Titan, Air India, IHCL/Taj etc. — only when you transact via the Neu app/site','1.5% NeuCoins on all other eligible spends','1.5% on UPI spends (RuPay variant, linked to UPI)','1 NeuCoin = ₹1 on Tata Neu purchases/redemption'],
+    perks:['Domestic lounge access (2 per quarter) + limited international lounge visits','1% fuel surcharge waiver','Extra NeuPass benefits (bonus coins on Tata brands)','RuPay variant works with UPI'],
+    watch:['The 5% only applies via Tata Neu; paying directly on a partner site gives you just the base rate','NeuCoins are mostly useful within the Tata ecosystem','No rewards on fuel, rent, wallets, government, insurance, utilities, education, gold','Forex markup ~3.5%'],
+    best:'Tata brands booked through the Neu app, and as the best general-purpose card for UPI payments.'
+   }},
+ { id:'scapia', name:'Scapia (Federal Bank)', color:'#16a05b', unit:'Scapia Coins', unitValue:0.2, forex:0, upi:true,
+   benefits:{
+    fee:'Lifetime free',
+    earn:['2% back as Scapia Coins on all eligible spends (1 coin = ₹0.20)','Up to 20% coins on travel bookings made through the Scapia app','Zero forex markup','UPI via RuPay variant'],
+    perks:['Lifetime-free card with Visa/RuPay options','Zero forex markup — the best of your four for international spends','Domestic lounge access on qualifying spends (check current conditions)','Coins redeemable on Scapia travel bookings (and other partners)'],
+    watch:['Coins are most valuable when spent on Scapia travel bookings','No rewards on fuel, rent, wallets, government','Note: Scapia is issued by Federal Bank. If your card is from Bank of Baroda, the rules may differ — update the CARDS block.'],
+    best:'International spends (0% forex), UPI payments, and generic spends where nothing else beats 2%.'
+   }}
+];
+
+/* ============================ STATE ============================ */
+const $ = id => document.getElementById(id);
+const ymNow = () => new Date().toISOString().slice(0,7);
+let LOG = [];
+try { LOG = JSON.parse(localStorage.getItem('cp_log')||'[]'); } catch(e){}
+let EMV = 1;
+try { EMV = parseFloat(localStorage.getItem('cp_emv')||'1')||1; } catch(e){}
+const saveLog = () => { try{ localStorage.setItem('cp_log', JSON.stringify(LOG)); }catch(e){} };
+const inr = n => '₹'+Math.round(n).toLocaleString('en-IN');
+const inr2 = n => '₹'+n.toLocaleString('en-IN',{maximumFractionDigits:2});
+
+function usage(){
+  const u = {mil5:0, mil1:0, atlas5:0};
+  LOG.filter(l=>l.ym===ymNow()).forEach(l=>{
+    if(l.bucket==='mil5'||l.bucket==='mil1') u[l.bucket]+=l.value;
+    if(l.bucket==='atlas5') u.atlas5+=l.amount;
+  });
+  return u;
+}
+
+/* ============================ ENGINE ============================ */
+// ctx: {cat, tags[], route, mode, intl}
+function evaluate(card, ctx, amount, use){
+  const out = {card, pct:0, value:0, note:'', warn:'', bucket:null, na:false};
+  const waiver = ctx.cat==='fuel';
+  if(ctx.mode==='upi' && !card.upi){ out.na=true; out.note='Not a UPI-enabled card'; return out; }
+  if(NO_REWARD[card.id].includes(ctx.cat)){
+    out.note = waiver ? `No reward points on fuel; ~${FUEL_WAIVER}% fuel surcharge waiver (txn ₹400–5,000, capped per month)` :
+      'This spend category is excluded from rewards';
+    if(waiver){ out.value = amount*FUEL_WAIVER/100; out.pct = FUEL_WAIVER; }
+    if(ctx.cat==='rent'||ctx.cat==='wallet') out.warn='Aggregator fees (often ~1.5–2%) will exceed any benefit';
+    return fx(out, card, ctx, amount);
+  }
+  const has = t => ctx.tags.includes(t);
+  if(card.id==='millennia'){
+    if(has('m5') && ctx.mode==='card'){
+      const left = Math.max(0, 1000 - use.mil5);
+      const raw = amount*0.05; out.value=Math.min(raw,left); out.pct=out.value/amount*100; out.bucket='mil5';
+      out.note='5% CashPoints (partner merchant)';
+      if(raw>left) out.warn=`Monthly 5% cap: only ${Math.round(left)} CashPoints left this month`;
+      else if(left<300) out.warn=`Only ${Math.round(left)} CashPoints left in this month's 5% cap`;
+    } else {
+      const left = Math.max(0, 1000 - use.mil1);
+      out.value=Math.min(amount*0.01,left); out.pct=out.value/amount*100; out.bucket='mil1'; out.note='1% CashPoints (base rate)';
+      if(amount*0.01>left) out.warn='Monthly 1% bucket cap reached';
+    }
+  }
+  if(card.id==='atlas'){
+    const travel = TRAVEL.includes(ctx.cat) && (ctx.route==='direct'||ctx.route==='axis');
+    if(travel){
+      const left = Math.max(0, 200000 - use.atlas5);
+      const at5 = Math.min(amount,left), rest = amount-at5;
+      out.value = (at5*0.05 + rest*0.02)*EMV; out.pct=out.value/amount*100; out.bucket='atlas5';
+      out.note = ctx.route==='axis' ? '5 EM per ₹100 via Axis Travel Edge' : '5 EM per ₹100 on direct travel booking';
+      if(rest>0) out.warn='Monthly ₹2L travel cap exceeded — remainder earns 2 EM/₹100';
+    } else {
+      out.value = amount*0.02*EMV; out.pct=out.value/amount*100;
+      out.note = TRAVEL.includes(ctx.cat) ? '2 EM per ₹100 (third-party/portal booking does not qualify for 5×)' : '2 EM per ₹100';
+    }
+    if(EMV!==1) out.note += ` · valued at ₹${EMV}/EM`;
+  }
+  if(card.id==='neu'){
+    if(has('tata') && ctx.route==='neu' && ctx.mode==='card'){
+      out.pct=5; out.value=amount*0.05; out.note='5% NeuCoins via Tata Neu app/site';
+    } else {
+      out.pct=1.5; out.value=amount*0.015;
+      out.note = ctx.mode==='upi' ? '1.5% NeuCoins on UPI (RuPay)' : '1.5% NeuCoins (base rate)';
+      if(has('tata') && ctx.route!=='neu') out.warn='Tata brand: book via the Tata Neu app/site to get 5% instead';
+    }
+  }
+  if(card.id==='scapia'){
+    if(TRAVEL.includes(ctx.cat) && ctx.route==='scapia' && ctx.mode==='card'){
+      out.pct=20; out.value=amount*0.20; out.note='Up to 20% coins on Scapia-app travel bookings';
+      out.warn='Monthly cap on booster coins applies — check the app; coins are mainly redeemable on travel';
+    } else { out.pct=2; out.value=amount*0.02; out.note='2% coins on all eligible spends (1 coin = ₹0.20)'; }
+  }
+  return fx(out, card, ctx, amount);
+}
+function fx(out, card, ctx, amount){
+  if(ctx.intl){
+    const cost = amount*card.forex/100;
+    out.forexCost = cost; out.net = out.value - cost;
+    out.note += card.forex===0 ? ' · 0% forex markup' : ` · ~${card.forex}% forex markup (−${inr(cost)})`;
+  } else out.net = out.value;
+  out.units = out.value/ (card.unitValue*(card.id==='atlas'?EMV:1));
+  return out;
+}
+
+function rank(ctx, amount){
+  const use = usage();
+  return CARDS.map(c=>evaluate(c,ctx,amount,use)).sort((a,b)=>(b.na?-1e9:b.net)-(a.na?-1e9:a.net) || 0);
+}
+
+/* ============================ PICKER UI ============================ */
+function matchMerchant(text){
+  const t=text.trim().toLowerCase(); if(!t) return null;
+  return MERCHANTS.find(m=>m[0].toLowerCase()===t) || MERCHANTS.find(m=>m[0].toLowerCase().includes(t)) ||
+         MERCHANTS.find(m=>t.includes(m[0].toLowerCase().split(' ')[0]) && m[0].split(' ')[0].length>3);
+}
+let detectedTags = [];
+function onWhat(){
+  const m = matchMerchant($('what').value);
+  if(m){
+    $('cat').value=m[1]; detectedTags=m[2];
+    $('detected').innerHTML = `Detected: <b>${m[0]}</b> → ${CATS[m[1]]}` +
+      (m[2].includes('m5')?' · <span class="chip">HDFC Millennia 5% partner</span>':'') +
+      (m[2].includes('tata')?' · <span class="chip">Tata Neu 5% brand</span>':'');
+    if(m[2].includes('tata')) {}
+  } else { detectedTags=[]; $('detected').textContent = $('what').value.trim()?'No exact merchant match — pick a category below.':''; }
+  render();
+}
+function currentCtx(){
+  return {cat:$('cat').value, tags:detectedTags, route:$('route').value, mode:$('mode').value, intl:$('intl').checked};
+}
+function render(){
+  const amount = Math.max(0, parseFloat($('amt').value)||0);
+  const ctx = currentCtx();
+  const rows = rank(ctx, amount);
+  const best = rows[0];
+  let html='';
+  if(amount<=0){ $('results').innerHTML='<div class="card">Enter an amount to compare cards.</div>'; return; }
+  const allZero = rows.every(r=>r.na||r.net<=0);
+  rows.forEach((r,i)=>{
+    const isBest = i===0 && !r.na && !allZero;
+    html+=`<div class="res ${isBest?'best':''}">
+      <div class="top"><div class="name"><span class="dot" style="background:${r.card.color}"></span>${r.card.name}${isBest?' <span class="badge">USE THIS</span>':''}</div>
+      <div class="val">${r.na?'—':inr2(r.net)}</div></div>
+      <div class="meta">${r.na?'':`${r.pct.toFixed(2)}% effective · ${Math.round(r.units).toLocaleString('en-IN')} ${r.card.unit} · `}${r.note}</div>
+      ${r.warn?`<div class="meta warn">⚠ ${r.warn}</div>`:''}
+      ${(!r.na && r.bucket)?`<button class="act" data-log="${r.card.id}">Log this spend</button>`:''}
+      ${(!r.na && !r.bucket)?`<button class="act" data-log="${r.card.id}">Log this spend</button>`:''}
+    </div>`;
+  });
+  // alternative-route tip
+  const tip = betterRoute(ctx, amount, best);
+  if(tip) html = `<div class="tip">💡 ${tip}</div>` + html;
+  if(ctx.cat==='rent'||ctx.cat==='wallet') html = `<div class="tip bad">No card earns anything here, and fees usually cost more than rewards. Pay by bank transfer/UPI unless you need the credit period.</div>`+html;
+  $('results').innerHTML = html;
+  $('results').querySelectorAll('[data-log]').forEach(b=>b.onclick=()=>logSpend(b.dataset.log, ctx, amount));
+}
+function betterRoute(ctx, amount, best){
+  const use=usage(); let top=null;
+  const routes=[['direct','paying directly'],['neu','booking via the Tata Neu app/site'],['scapia','booking via the Scapia app'],['axis','booking via Axis Travel Edge']];
+  for(const [r,label] of routes){
+    if(r===ctx.route) continue;
+    const c2={...ctx,route:r};
+    CARDS.forEach(card=>{
+      const e=evaluate(card,c2,amount,use);
+      if(!e.na && (!top||e.net>top.e.net)) top={e,label,r};
+    });
+  }
+  if(top && top.e.net > (best.na?0:best.net)*1.15 && top.e.net-best.net>=1){
+    return `Better option: ${top.label} with <b>${top.e.card.name}</b> would earn <b>${inr2(top.e.net)}</b> (vs ${inr2(best.net)}). Change “Where / how are you booking?” to compare.`;
+  }
+  return null;
+}
+function logSpend(cardId, ctx, amount){
+  const card=CARDS.find(c=>c.id===cardId);
+  const e=evaluate(card,ctx,amount,usage());
+  LOG.push({ym:ymNow(), t:Date.now(), card:cardId, amount, value:e.value, bucket:e.bucket,
+            what:$('what').value.trim()||CATS[ctx.cat]});
+  saveLog(); renderLog(); render();
+  const b=document.querySelector(`[data-log="${cardId}"]`); if(b){ b.textContent='Logged ✓'; }
+}
+
+/* ============================ CHEAT SHEET ============================ */
+function renderCheat(){
+  const items = [
+    ['Amazon / Flipkart / Myntra','shopping',['m5']],['Swiggy / Zomato','delivery',['m5']],['Uber','cab',['m5']],
+    ['BookMyShow / Sony LIV','entertainment',['m5']],['Tata CLiQ','shopping',['m5','tata']],
+    ['BigBasket','groceries',['tata']],['Croma','electronics',['tata']],['Tata 1mg','health',['tata']],
+    ['Westside / Titan','shopping',['tata']],['Air India flight','flight',['tata']],['Taj / IHCL hotel','hotel',['tata']],
+    ['IndiGo / other airline','flight',[]],['Hotels (Marriott/Hyatt…)','hotel',[]],
+    ['Blinkit / Zepto','delivery',[]],['Supermarket / DMart','groceries',[]],['Restaurant','dining',[]],
+    ['Other online shopping','shopping',[]],['Pharmacy','health',[]],['Cab (Ola / Rapido)','cab',[]],
+    ['Netflix / Spotify / OTT','entertainment',[]],['Mobile recharge','telecom',[]],['Anything via UPI','other',[],'upi'],
+    ['International spend','other',[],'card',true],['Fuel','fuel',[]],['Electricity / utilities','utilities',[]],
+    ['Insurance premium','insurance',[]],['Rent / wallet / govt','rent',[]]
+  ];
+  const routes=['direct','neu','scapia','axis'];
+  const rn={direct:'direct',neu:'Tata Neu app',scapia:'Scapia app',axis:'Axis Travel Edge'};
+  let h='<tr><th>Spend on</th><th>Pay directly with</th><th>Better route</th></tr>';
+  items.forEach(([label,cat,tags,mode='card',intl=false])=>{
+    const base={cat,tags,mode,intl,route:'direct'};
+    const rows=rank(base,1000); const b=rows[0];
+    let direct = (b.net<=0.01)? '<span class="bad">No reward — any card</span>' :
+      `<b>${b.card.name}</b> <span class="meta">${b.pct.toFixed(1)}%</span>`;
+    if(cat==='fuel') direct='Any card (1% surcharge waiver only)';
+    let better='—';
+    let top=null;
+    routes.slice(1).forEach(r=>CARDS.forEach(c=>{const e=evaluate(c,{...base,route:r},1000,{mil5:0,mil1:0,atlas5:0});
+      if(!e.na&&(!top||e.net>top.e.net))top={e,r};}));
+    if(top && top.e.net>b.net*1.1+0.5) better=`${rn[top.r]} → <b>${top.e.card.name}</b> <span class="meta">${top.e.pct.toFixed(1)}%</span>`;
+    h+=`<tr><td>${label}</td><td>${direct}</td><td>${better}</td></tr>`;
+  });
+  $('cheat').innerHTML=h;
+}
+
+/* ============================ BENEFITS & PLAYBOOK ============================ */
+function renderBenefits(){
+  $('benefits').innerHTML = CARDS.map(c=>{
+    const b=c.benefits, li=a=>a.map(x=>`<li>${x}</li>`).join('');
+    return `<div class="card"><h2><span class="dot" style="background:${c.color}"></span> ${c.name}</h2>
+    <p class="meta"><b>Annual fee:</b> ${b.fee}</p>
+    <h3>Rewards</h3><ul>${li(b.earn)}</ul>
+    <h3>Perks</h3><ul>${li(b.perks)}</ul>
+    <h3>Watch out</h3><ul>${li(b.watch)}</ul>
+    <p class="tip"><b>Best used for:</b> ${b.best}</p></div>`;
+  }).join('');
+}
+function renderMax(){
+  $('max').innerHTML = `
+  <div class="card"><h2>The simple playbook</h2>
+    <ol>
+      <li><b>Default card for everyday spends: Scapia</b> (2%, lifetime free) — or Axis Atlas if you value miles at ₹1.5+ each. Whichever you pick as default, never let a spend go on a card earning less than 1.5%.</li>
+      <li><b>Online shopping &amp; food:</b> HDFC Millennia on Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow (5%).</li>
+      <li><b>Tata brands</b> (BigBasket, Croma, 1mg, Westside, Titan, Air India, Taj): open the <b>Tata Neu app/site</b> and pay with the Tata Neu Infinity card (5%).</li>
+      <li><b>Flights &amp; hotels:</b> book directly on the airline/hotel site (or Axis Travel Edge) with Axis Atlas (5 EM/₹100). Air India → try Neu app (5%) vs Atlas, and compare in this app.</li>
+      <li><b>UPI:</b> use the RuPay-linked Tata Neu (1.5%) or Scapia (2%) — Millennia and Atlas can't do UPI.</li>
+      <li><b>International:</b> Scapia (0% forex). The other three charge ~3.5%, which wipes out their rewards.</li>
+    </ol>
+  </div>
+  <div class="card"><h2>Squeeze out extra value</h2>
+    <h3>Caps &amp; limits</h3>
+    <ul>
+      <li>Millennia's 5% stops at ~1,000 CashPoints/month (≈ ₹20,000 of partner spend). After that, switch to Scapia/Neu (2%/1.5%). Use <b>My month</b> to track this.</li>
+      <li>Atlas 5× travel counts up to ₹2L spend/month — plenty for most people.</li>
+    </ul>
+    <h3>Milestones &amp; fee waivers</h3>
+    <ul>
+      <li><b>Axis Atlas:</b> annual spend of ₹3L / ₹7.5L / ₹15L unlocks bonus EM and higher lounge tiers. Routing big annual spends (insurance excluded!) to Atlas can unlock 2,500+ EM.</li>
+      <li><b>HDFC Millennia:</b> ₹1L quarterly spend → lounge visits; ₹1L/year waives the ₹1,000 fee.</li>
+      <li><b>Tata Neu Infinity:</b> ₹3L annual spend waives the fee.</li>
+      <li>Plan quarterly: if you're ₹5–10k short of Millennia's quarterly ₹1L target, put planned purchases there.</li>
+    </ul>
+    <h3>Lounges</h3>
+    <ul>
+      <li>Combined lounge access across the cards is generous: Millennia 8 domestic/yr, Neu 8 domestic + some international, Atlas 8+4 and up, Scapia (conditions apply). Use the card with the best remaining allowance and keep screenshots of eligibility.</li>
+    </ul>
+    <h3>Redemption</h3>
+    <ul>
+      <li><b>Axis EM:</b> transfer to partners for flights/hotels (1 EM → 2 miles) — often 1.5–2 ₹/EM on business class/aspirational redemptions; avoid voucher redemptions at poor rates.</li>
+      <li><b>CashPoints / NeuCoins:</b> redeem at full ₹1 value (statement credit, Amazon/Flipkart vouchers, Tata purchases). Skip low-value catalogue items.</li>
+      <li><b>Scapia Coins:</b> spend them on Scapia travel bookings.</li>
+    </ul>
+    <h3>Avoid the traps</h3>
+    <ul>
+      <li>Rent / wallet loads / gift-card loads: no rewards, plus fees — and some banks charge extra.</li>
+      <li>Fuel: no points, only a small surcharge waiver on ₹400–5,000 transactions; any card is fine.</li>
+      <li>Never carry a balance — interest (~3.5%/month) dwarfs every reward here. Set autopay for the full amount.</li>
+      <li>Check bank emails: HDFC and Axis revise reward rules, caps and exclusions several times a year.</li>
+    </ul>
+  </div>
+  <div class="card"><h2>Quick rules of thumb</h2>
+    <div class="tblwrap"><table>
+      <tr><th>If you're paying for…</th><th>Use</th></tr>
+      <tr><td>Amazon, Flipkart, Myntra, Swiggy, Zomato, Uber, BookMyShow</td><td>HDFC Millennia (5%)</td></tr>
+      <tr><td>BigBasket, Croma, 1mg, Westside, Titan via Neu app</td><td>Tata Neu Infinity (5%)</td></tr>
+      <tr><td>Flights / hotels direct</td><td>Axis Atlas (5 EM/₹100)</td></tr>
+      <tr><td>Scapia-app travel bookings</td><td>Scapia (booster coins)</td></tr>
+      <tr><td>UPI scan &amp; pay</td><td>Scapia (2%) / Tata Neu RuPay (1.5%)</td></tr>
+      <tr><td>International spend</td><td>Scapia (0% forex)</td></tr>
+      <tr><td>Everything else</td><td>Scapia (2%) or Atlas (2 EM/₹100)</td></tr>
+    </table></div>
+  </div>`;
+}
+
+/* ============================ LOG / METERS ============================ */
+function meter(label,used,cap,unit){
+  const p=Math.min(100,used/cap*100);
+  return `<div style="margin:10px 0"><div style="display:flex;justify-content:space-between"><span>${label}</span><span class="meta">${Math.round(used).toLocaleString('en-IN')} / ${cap.toLocaleString('en-IN')} ${unit}</span></div><div class="bar"><i style="width:${p}%;${p>=90?'background:var(--warn)':''}"></i></div></div>`;
+}
+function renderLog(){
+  $('ym').textContent = ymNow();
+  const u=usage(), month=LOG.filter(l=>l.ym===ymNow());
+  const byCard={}; month.forEach(l=>{byCard[l.card]=byCard[l.card]||{amt:0,val:0}; byCard[l.card].amt+=l.amount; byCard[l.card].val+=l.value;});
+  const yearAtlas = LOG.filter(l=>l.card==='atlas' && l.ym.slice(0,4)===ymNow().slice(0,4)).reduce((s,l)=>s+l.amount,0);
+  $('meters').innerHTML =
+    meter('HDFC Millennia — 5% bucket',u.mil5,1000,'CashPoints')+
+    meter('HDFC Millennia — 1% bucket',u.mil1,1000,'CashPoints')+
+    meter('Axis Atlas — 5× travel spend',u.atlas5,200000,'₹')+
+    meter('Axis Atlas — logged annual spend (₹3L milestone)',yearAtlas,300000,'₹')+
+    `<h3>Totals this month</h3>`+ (CARDS.map(c=>{const b=byCard[c.id]||{amt:0,val:0};
+      return `<div class="meta"><b>${c.name}</b>: ${inr(b.amt)} spent · ~${inr(b.val)} rewards</div>`}).join(''));
+  const rows = month.slice().reverse().map(l=>{
+    const c=CARDS.find(x=>x.id===l.card);
+    return `<tr><td>${l.what}</td><td>${c.name}</td><td>${inr(l.amount)}</td><td>${inr(l.value)}</td><td><button class="act" data-del="${l.t}">✕</button></td></tr>`;}).join('');
+  $('logtable').innerHTML = month.length ? `<tr><th>For</th><th>Card</th><th>Amount</th><th>Reward</th><th></th></tr>${rows}` : '<tr><td class="meta">Nothing logged yet this month.</td></tr>';
+  $('logtable').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{LOG=LOG.filter(l=>String(l.t)!==b.dataset.del);saveLog();renderLog();render();});
+}
+
+/* ============================ WIRING ============================ */
+(function init(){
+  $('merchants').innerHTML = MERCHANTS.map(m=>`<option value="${m[0]}">`).join('');
+  $('cat').innerHTML = Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  $('cat').value='other'; $('emv').value=EMV;
+  $('what').addEventListener('input',onWhat);
+  ['amt','route','mode','intl'].forEach(id=>$(id).addEventListener('input',render));
+  $('cat').addEventListener('change',()=>{ if(!matchMerchant($('what').value)||matchMerchant($('what').value)[1]!==$('cat').value) detectedTags=[]; render(); });
+  $('emv').addEventListener('input',()=>{EMV=parseFloat($('emv').value)||1; try{localStorage.setItem('cp_emv',EMV);}catch(e){}; render(); renderCheat();});
+  $('clearlog').onclick=()=>{ if(confirm('Clear all logged spends for this month?')){LOG=LOG.filter(l=>l.ym!==ymNow());saveLog();renderLog();render();} };
+  $('nav').addEventListener('click',e=>{
+    const t=e.target.dataset.t; if(!t) return;
+    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===e.target));
+    ['pick','cheat','benefits','max','log'].forEach(k=>$('t-'+k).classList.toggle('hide',k!==t));
+  });
+  renderCheat(); renderBenefits(); renderMax(); renderLog(); render();
+})();
+</script>
+</body>
+</html>
